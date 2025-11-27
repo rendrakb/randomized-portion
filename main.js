@@ -119,7 +119,7 @@ class ItemDataManager {
       C: C,
       D: D,
       CDiff: Math.abs(CDiff),
-      CDirection: CDiff > 0 ? "more than" : "less than",
+      CDirection: CDiff > 0 ? "more" : "less",
     };
 
     return this.data;
@@ -150,12 +150,12 @@ class ItemRenderer {
     if (!data) return;
 
     this.containers.total.innerHTML = `The total value of all items is <strong>${data.total}</strong>`;
-    this.containers.itemA.innerHTML = `A is <strong>${data.A}</strong>`;
-    this.containers.itemB.innerHTML = `B is <strong>${data.BPercent}%</strong> of A`;
-    this.containers.itemC.innerHTML = `C is <strong>${Math.abs(
+    this.containers.itemA.innerHTML = `A<br><br><strong>is ${data.A}</strong>`;
+    this.containers.itemB.innerHTML = `B<br><br><strong>is ${data.BPercent}% of A</strong>`;
+    this.containers.itemC.innerHTML = `C<strong>is ${Math.abs(
       data.CDiff
-    )}</strong> ${data.CDirection} D`;
-    this.containers.itemD.innerHTML = `D is <strong>unknown</strong>`;
+    )} ${data.CDirection}</strong> than D`;
+    this.containers.itemD.innerHTML = `D<br><br><strong>is unknown</strong>`;
   }
 }
 
