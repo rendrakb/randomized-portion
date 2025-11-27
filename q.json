@@ -1,0 +1,42 @@
+[
+  {
+    "template": "What is the value of {item}?",
+    "type": "itemValue",
+    "variables": ["item"]
+  },
+  {
+    "template": "What percentage of the total does {item} contribute?",
+    "type": "percentContribution",
+    "variables": ["item"]
+  },
+  {
+    "template": "Which item has the largest value?",
+    "type": "largestItem",
+    "variables": []
+  },
+  {
+    "template": "Which item has the smallest value?",
+    "type": "smallestItem",
+    "variables": []
+  },
+  {
+    "template": "What is {item} as a percentage of the total?",
+    "type": "percentOfTotal",
+    "variables": ["item"]
+  },
+  {
+    "template": "What is the sum of {itemA} and {itemB}?",
+    "type": "sumOfItems",
+    "variables": ["itemA", "itemB"]
+  },
+  {
+    "template": "Which is larger, {itemA} or {itemB}?",
+    "type": "compareItems",
+    "variables": ["itemA", "itemB"]
+  },
+  {
+    "template": "What is the difference between {itemA} and {itemB}?",
+    "type": "differenceItems",
+    "variables": ["itemA", "itemB"]
+  }
+]
