@@ -108,3 +108,19 @@ button:hover {
   margin-top: 10px;
   font-size: 0.8em;
 }
+
+.footer {
+  font-size: 0.6em;
+  position: fixed;
+  bottom: 0px;
+}
+
+.home {
+  text-decoration: none;
+  color: white;
+  margin-top: 40px;
+}
+
+.home:hover {
+  color: gray;
+}
