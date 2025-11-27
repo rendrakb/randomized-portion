@@ -35,74 +35,72 @@ class ItemDataManager {
     let attempts = 0;
     const maxAttempts = 200;
     let validData = false;
-    
+
     while (!validData && attempts < maxAttempts) {
-      // Generate A in steps of 100 (between 100-400 for safety)
       A = (Math.floor(Math.random() * 4) + 1) * CONFIG.DATA.STEP;
-      
-      // Generate B as percentage of A (in steps of 10%, can exceed 100%)
-      BPercent = (Math.floor(Math.random() * 15) + 1) * CONFIG.DATA.PERCENT_STEP;
+
+      BPercent =
+        (Math.floor(Math.random() * 15) + 1) * CONFIG.DATA.PERCENT_STEP;
       B = Math.round((BPercent / 100) * A);
-      
-      // Generate total in steps of 100, ensuring enough room for C and D
+
       const minTotalSteps = Math.ceil((A + B + 300) / CONFIG.DATA.STEP);
       const maxTotalSteps = 10;
-      
+
       if (minTotalSteps > maxTotalSteps) {
         attempts++;
         continue;
       }
-      
-      const totalSteps = Math.floor(Math.random() * (maxTotalSteps - minTotalSteps + 1)) + minTotalSteps;
+
+      const totalSteps =
+        Math.floor(Math.random() * (maxTotalSteps - minTotalSteps + 1)) +
+        minTotalSteps;
       total = totalSteps * CONFIG.DATA.STEP;
-      
-      // Calculate remaining value after A and B
+
       const remaining = total - A - B;
-      
+
       if (remaining < 300) {
         attempts++;
         continue;
       }
-      
-      // Generate a random difference with more variety
-      // Use a random value between 10 and 80% of remaining, in steps of 10
+
       const minDiff = 10;
       const maxDiffPercent = 80;
-      const diffPercent = (Math.floor(Math.random() * (maxDiffPercent - minDiff) / 10) + minDiff / 10) * 10;
+      const diffPercent =
+        (Math.floor((Math.random() * (maxDiffPercent - minDiff)) / 10) +
+          minDiff / 10) *
+        10;
       CDiff = Math.round((diffPercent / 100) * remaining);
-      
-      // Ensure CDiff is at least 50 for meaningful difference
+
       if (CDiff < 50) {
         CDiff = 50 + Math.floor(Math.random() * 10) * 10;
       }
-      
-      // Randomly decide if C is more or less than D
+
       const CIsMore = Math.random() < 0.5;
-      
+
       if (CIsMore) {
-        // C is more than D by CDiff
         D = (remaining - CDiff) / 2;
         C = (remaining + CDiff) / 2;
       } else {
-        // C is less than D by CDiff
         C = (remaining - CDiff) / 2;
         D = (remaining + CDiff) / 2;
-        CDiff = -CDiff; // Make it negative to indicate direction
+        CDiff = -CDiff;
       }
-      
-      // Round values
+
       C = Math.round(C);
       D = Math.round(D);
-      
-      // Verify all values are positive and meaningful
-      if (C > 50 && D > 50 && Math.abs(C - D) >= 50 && Math.abs((A + B + C + D) - total) < 2) {
+
+      if (
+        C > 50 &&
+        D > 50 &&
+        Math.abs(C - D) >= 50 &&
+        Math.abs(A + B + C + D - total) < 2
+      ) {
         validData = true;
       }
-      
+
       attempts++;
     }
-    
-    // If we couldn't find a valid combination, use a guaranteed valid approach
+
     if (!validData) {
       A = 200;
       BPercent = 50;
@@ -154,7 +152,9 @@ class ItemRenderer {
     this.containers.total.innerHTML = `The total value of all items is <strong>${data.total}</strong>`;
     this.containers.itemA.innerHTML = `A is <strong>${data.A}</strong>`;
     this.containers.itemB.innerHTML = `B is <strong>${data.BPercent}%</strong> of A`;
-    this.containers.itemC.innerHTML = `C is <strong>${Math.abs(data.CDiff)}</strong> ${data.CDirection} D`;
+    this.containers.itemC.innerHTML = `C is <strong>${Math.abs(
+      data.CDiff
+    )}</strong> ${data.CDirection} D`;
     this.containers.itemD.innerHTML = `D is <strong>unknown</strong>`;
   }
 }
@@ -178,9 +178,8 @@ class QuestionGenerator {
       } else if (varName === "itemA") {
         vars[varName] = QuestionGenerator.pickRandom(items);
       } else if (varName === "itemB") {
-        // Make sure itemB is different from itemA if itemA exists
-        const availableItems = vars.itemA 
-          ? items.filter(item => item !== vars.itemA)
+        const availableItems = vars.itemA
+          ? items.filter((item) => item !== vars.itemA)
           : items;
         vars[varName] = QuestionGenerator.pickRandom(availableItems);
       }
@@ -301,9 +300,8 @@ class QuestionGenerator {
     const itemA = vars.itemA;
     const itemB = vars.itemB;
     const diff = data[itemA] - data[itemB];
-    return Math.round(diff);
+    return Math.abs(Math.round(diff));
   }
-
   generate() {
     if (!state.questionTemplates.length || !this.dataManager.getData()) {
       console.warn("Cannot generate question: missing templates or data");
@@ -407,7 +405,7 @@ class UIController {
 }
 
 class AnswerValidator {
-  static normalize(answer) {
+  static normalize(answer, expectedHasPercent = false) {
     if (answer == null) return "";
 
     let normalized = String(answer).trim().toLowerCase();
@@ -415,11 +413,10 @@ class AnswerValidator {
 
     const num = parseFloat(normalized.replace("%", ""));
     if (!isNaN(num)) {
-      const hasPercent = String(answer).includes("%");
-      if (hasPercent) {
-        return `${Math.abs(Math.round(num))}%`;
+      if (expectedHasPercent) {
+        return `${Math.abs(num)}%`;
       } else {
-        return Math.round(num);
+        return Math.abs(num);
       }
     }
 
