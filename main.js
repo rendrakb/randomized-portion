@@ -6,6 +6,10 @@ const CONFIG = {
     MIN_PERCENT: 10,
     MAX_PERCENT: 300,
     PERCENT_STEP: 10,
+    MIN_REMAINING: 300,
+    MIN_DIFF: 50,
+    MIN_ITEM_VALUE: 50,
+    MAX_ATTEMPTS: 200,
   },
   COLORS: {
     CORRECT: "lightgreen",
@@ -31,98 +35,78 @@ class ItemDataManager {
   }
 
   randomize() {
-    let A, B, BPercent, C, D, CDiff, total;
-    let attempts = 0;
-    const maxAttempts = 200;
-    let validData = false;
-
-    while (!validData && attempts < maxAttempts) {
-      A = (Math.floor(Math.random() * 4) + 1) * CONFIG.DATA.STEP;
-
-      BPercent =
-        (Math.floor(Math.random() * 15) + 1) * CONFIG.DATA.PERCENT_STEP;
-      B = Math.round((BPercent / 100) * A);
-
-      const minTotalSteps = Math.ceil((A + B + 300) / CONFIG.DATA.STEP);
-      const maxTotalSteps = 10;
-
-      if (minTotalSteps > maxTotalSteps) {
-        attempts++;
-        continue;
-      }
-
-      const totalSteps =
-        Math.floor(Math.random() * (maxTotalSteps - minTotalSteps + 1)) +
-        minTotalSteps;
-      total = totalSteps * CONFIG.DATA.STEP;
-
-      const remaining = total - A - B;
-
-      if (remaining < 300) {
-        attempts++;
-        continue;
-      }
-
-      const minDiff = 10;
-      const maxDiffPercent = 80;
-      const diffPercent =
-        (Math.floor((Math.random() * (maxDiffPercent - minDiff)) / 10) +
-          minDiff / 10) *
-        10;
-      CDiff = Math.round((diffPercent / 100) * remaining);
-
-      if (CDiff < 50) {
-        CDiff = 50 + Math.floor(Math.random() * 10) * 10;
-      }
-
-      const CIsMore = Math.random() < 0.5;
-
-      if (CIsMore) {
-        D = (remaining - CDiff) / 2;
-        C = (remaining + CDiff) / 2;
-      } else {
-        C = (remaining - CDiff) / 2;
-        D = (remaining + CDiff) / 2;
-        CDiff = -CDiff;
-      }
-
-      C = Math.round(C);
-      D = Math.round(D);
-
-      if (
-        C > 50 &&
-        D > 50 &&
-        Math.abs(C - D) >= 50 &&
-        Math.abs(A + B + C + D - total) < 2
-      ) {
-        validData = true;
-      }
-
-      attempts++;
-    }
-
-    if (!validData) {
-      A = 200;
-      BPercent = 50;
-      B = 100;
-      total = 900;
-      C = 350;
-      D = 250;
-      CDiff = 100;
-    }
-
+    const data = this.generateValidData();
     this.data = {
-      total: total,
-      A: A,
-      B: B,
-      BPercent: BPercent,
-      C: C,
-      D: D,
-      CDiff: Math.abs(CDiff),
-      CDirection: CDiff > 0 ? "more" : "less",
+      ...data,
+      CDiff: Math.abs(data.CDiff),
+      CDirection: data.CDiff > 0 ? "more" : "less",
     };
-
     return this.data;
+  }
+
+  generateValidData() {
+    for (let attempts = 0; attempts < CONFIG.DATA.MAX_ATTEMPTS; attempts++) {
+      const result = this.tryGenerateData();
+      if (result) return result;
+    }
+    return this.getFallbackData();
+  }
+
+  tryGenerateData() {
+    const A = this.randomStep(1, 4);
+    const BPercent = this.randomStep(1, 15, CONFIG.DATA.PERCENT_STEP);
+    const B = Math.round((BPercent / 100) * A);
+
+    const minTotalSteps = Math.ceil((A + B + CONFIG.DATA.MIN_REMAINING) / CONFIG.DATA.STEP);
+    if (minTotalSteps > 10) return null;
+
+    const total = this.randomStep(minTotalSteps, 10);
+    const remaining = total - A - B;
+
+    if (remaining < CONFIG.DATA.MIN_REMAINING) return null;
+
+    const { C, D, CDiff } = this.calculateCDPair(remaining);
+
+    if (!this.isValidData(C, D, A, B, total)) return null;
+
+    return { total, A, B, BPercent, C, D, CDiff };
+  }
+
+  calculateCDPair(remaining) {
+    const diffPercent = this.randomStep(1, 8, 10);
+    let CDiff = Math.round((diffPercent / 100) * remaining);
+    CDiff = Math.max(CDiff, CONFIG.DATA.MIN_DIFF + Math.floor(Math.random() * 10) * 10);
+
+    const CIsMore = Math.random() < 0.5;
+    const C = Math.round((remaining + (CIsMore ? CDiff : -CDiff)) / 2);
+    const D = Math.round(remaining - C);
+
+    return { C, D, CDiff: CIsMore ? CDiff : -CDiff };
+  }
+
+  isValidData(C, D, A, B, total) {
+    return (
+      C > CONFIG.DATA.MIN_ITEM_VALUE &&
+      D > CONFIG.DATA.MIN_ITEM_VALUE &&
+      Math.abs(C - D) >= CONFIG.DATA.MIN_DIFF &&
+      Math.abs(A + B + C + D - total) < 2
+    );
+  }
+
+  randomStep(min, max, step = CONFIG.DATA.STEP) {
+    return (Math.floor(Math.random() * (max - min + 1)) + min) * step;
+  }
+
+  getFallbackData() {
+    return {
+      total: 900,
+      A: 200,
+      B: 100,
+      BPercent: 50,
+      C: 350,
+      D: 250,
+      CDiff: 100,
+    };
   }
 
   getData() {
@@ -130,8 +114,7 @@ class ItemDataManager {
   }
 
   getValue(item) {
-    if (!this.data) return 0;
-    return this.data[item];
+    return this.data?.[item] ?? 0;
   }
 }
 
