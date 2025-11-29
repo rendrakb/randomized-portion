@@ -57,7 +57,9 @@ class ItemDataManager {
     const BPercent = this.randomStep(1, 15, CONFIG.DATA.PERCENT_STEP);
     const B = Math.round((BPercent / 100) * A);
 
-    const minTotalSteps = Math.ceil((A + B + CONFIG.DATA.MIN_REMAINING) / CONFIG.DATA.STEP);
+    const minTotalSteps = Math.ceil(
+      (A + B + CONFIG.DATA.MIN_REMAINING) / CONFIG.DATA.STEP
+    );
     if (minTotalSteps > 10) return null;
 
     const total = this.randomStep(minTotalSteps, 10);
@@ -75,7 +77,10 @@ class ItemDataManager {
   calculateCDPair(remaining) {
     const diffPercent = this.randomStep(1, 8, 10);
     let CDiff = Math.round((diffPercent / 100) * remaining);
-    CDiff = Math.max(CDiff, CONFIG.DATA.MIN_DIFF + Math.floor(Math.random() * 10) * 10);
+    CDiff = Math.max(
+      CDiff,
+      CONFIG.DATA.MIN_DIFF + Math.floor(Math.random() * 10) * 10
+    );
 
     const CIsMore = Math.random() < 0.5;
     const C = Math.round((remaining + (CIsMore ? CDiff : -CDiff)) / 2);
@@ -135,9 +140,7 @@ class ItemRenderer {
     this.containers.total.innerHTML = `The total value of all items is <strong>${data.total}</strong>`;
     this.containers.itemA.innerHTML = `A<br><br><strong>is ${data.A}</strong>`;
     this.containers.itemB.innerHTML = `B<br><br><strong>is ${data.BPercent}% of A</strong>`;
-    this.containers.itemC.innerHTML = `C<strong>is ${Math.abs(
-      data.CDiff
-    )} ${data.CDirection}</strong> than D`;
+    this.containers.itemC.innerHTML = `C<strong>is ${Math.abs(data.CDiff)} ${data.CDirection}</strong> than D`;
     this.containers.itemD.innerHTML = `D<br><br><strong>is unknown</strong>`;
   }
 }
@@ -194,8 +197,11 @@ class QuestionGenerator {
       case "percentOfTotal":
         return this.calculatePercentOfTotal(vars, data);
 
-      case "compareItems":
-        return this.compareItems(vars, data);
+      case "largerItems":
+        return this.largerItems(vars, data);
+
+      case "smallerItems":
+        return this.smallerItems(vars, data);
 
       case "differenceItems":
         return this.calculateDifference(vars, data);
@@ -270,13 +276,22 @@ class QuestionGenerator {
     return `${Math.round(percentage)}%`;
   }
 
-  compareItems(vars, data) {
+  largerItems(vars, data) {
     const itemA = vars.itemA;
     const itemB = vars.itemB;
     const valueA = data[itemA];
     const valueB = data[itemB];
 
     return valueA > valueB ? itemA : itemB;
+  }
+
+  smallerItems(vars, data) {
+    const itemA = vars.itemA;
+    const itemB = vars.itemB;
+    const valueA = data[itemA];
+    const valueB = data[itemB];
+
+    return valueA < valueB ? itemA : itemB;
   }
 
   calculateDifference(vars, data) {
