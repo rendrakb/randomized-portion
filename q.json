@@ -38,5 +38,15 @@
     "template": "Which is smaller, {itemA} or {itemB}?",
     "type": "smallerItems",
     "variables": ["itemA", "itemB"]
+  },
+    {
+    "template": "If the proportion is maintained & the total is reduced by 100, what is the new value of {item}?",
+    "type": "totalReduction",
+    "variables": ["item"]
+  },
+  {
+    "template": "If the total is maintained & A is reduced by 100, what is the new value of {item}?",
+    "type": "aReduction",
+    "variables": ["item"]
   }
 ]

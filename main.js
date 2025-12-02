@@ -140,7 +140,9 @@ class ItemRenderer {
     this.containers.total.innerHTML = `The total value of all items is <strong>${data.total}</strong>`;
     this.containers.itemA.innerHTML = `A<br><br><strong>is ${data.A}</strong>`;
     this.containers.itemB.innerHTML = `B<br><br><strong>is ${data.BPercent}% of A</strong>`;
-    this.containers.itemC.innerHTML = `C<strong>is ${Math.abs(data.CDiff)} ${data.CDirection}</strong> than D`;
+    this.containers.itemC.innerHTML = `C<strong>is ${Math.abs(data.CDiff)} ${
+      data.CDirection
+    }</strong> than D`;
     this.containers.itemD.innerHTML = `D<br><br><strong>is unknown</strong>`;
   }
 }
@@ -205,6 +207,12 @@ class QuestionGenerator {
 
       case "differenceItems":
         return this.calculateDifference(vars, data);
+
+      case "totalReduction":
+        return this.calculateTotalReduction(vars, data);
+
+      case "aReduction":
+        return this.calculateAReduction(vars, data);
 
       default:
         console.warn(`Unknown question type: ${type}`);
@@ -300,6 +308,45 @@ class QuestionGenerator {
     const diff = data[itemA] - data[itemB];
     return Math.abs(Math.round(diff));
   }
+
+  calculateTotalReduction(vars, data) {
+    const item = vars.item;
+    const newTotal = data.total - 100;
+    const proportion = data[item] / data.total;
+    return Math.round(newTotal * proportion);
+  }
+
+  calculateAReduction(vars, data) {
+    const item = vars.item;
+
+    if (item === "A") {
+      return data.A - 100;
+    }
+
+    if (item === "B") {
+      const newA = data.A - 100;
+      return Math.round((data.BPercent / 100) * newA);
+    }
+
+    if (item === "C" || item === "D") {
+      const newA = data.A - 100;
+      const newB = Math.round((data.BPercent / 100) * newA);
+      const newRemaining = data.total - newA - newB;
+
+      if (data.CDirection === "more") {
+        const newD = (newRemaining - data.CDiff) / 2;
+        const newC = (newRemaining + data.CDiff) / 2;
+        return item === "C" ? Math.round(newC) : Math.round(newD);
+      } else {
+        const newC = (newRemaining - data.CDiff) / 2;
+        const newD = (newRemaining + data.CDiff) / 2;
+        return item === "C" ? Math.round(newC) : Math.round(newD);
+      }
+    }
+
+    return null;
+  }
+
   generate() {
     if (!state.questionTemplates.length || !this.dataManager.getData()) {
       console.warn("Cannot generate question: missing templates or data");
